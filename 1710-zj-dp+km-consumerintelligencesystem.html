@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>CIS | Consumer Intelligence System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.2);
+        }
+        .grid-pattern {
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(1.3); opacity: 0; }
+        }
+        .slide-in {
+            animation: slideIn 0.6s ease-out forwards;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .confidence-bar {
+            background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+        }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        @media (max-width: 768px) {
+            .module-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        .tab-active {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+            color: #667eea;
+        }
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .checkbox-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255,255,255,0.05);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .checkbox-label:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
+        }
+        .checkbox-label input {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+            cursor: pointer;
+        }
+        .compare-btn {
+            background: #667eea;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 1rem;
+        }
+        .compare-btn:hover {
+            background: #5a6fe0;
+            transform: translateY(-2px);
+        }
+        .method-step {
+            background: rgba(255,255,255,0.02);
+            border-left: 3px solid #667eea;
+            transition: all 0.2s;
+        }
+        .method-step:hover {
+            background: rgba(102,126,234,0.1);
+            border-left-color: #a855f7;
+        }
+        .chat-input {
+            background: rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 60px;
+            padding: 0.8rem 1.2rem;
+            color: white;
+            width: 100%;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .chat-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102,126,234,0.3);
+        }
+        .chat-message {
+            background: rgba(102,126,234,0.15);
+            border-radius: 1rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.75rem;
+            border-left: 3px solid #667eea;
+        }
+    </style>
+</head>
+<body class="grid-pattern">
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full z-50 bg-black/50 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span class="text-white font-bold text-sm">CIS</span>
+                    </div>
+                    <span class="font-semibold text-lg tracking-tight">Consumer Intelligence System</span>
+                </div>
+                <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-400">
+                    <a href="#overview" class="hover:text-white transition-colors">Overview</a>
+                    <a href="#architecture" class="hover:text-white transition-colors">Architecture</a>
+                    <a href="#markets" class="hover:text-white transition-colors">Market Analysis</a>
+                    <a href="#methodology" class="hover:text-white transition-colors">Methodology</a>
+                    <a href="#insights" class="hover:text-white transition-colors">Insights</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="overview" class="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="absolute top-20 right-0 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl -z-10"></div>
+        <div class="absolute bottom-0 left-0 w-72 h-72 bg-purple-600/20 rounded-full blur-3xl -z-10"></div>
+        
+        <div class="slide-in" style="animation-delay: 0.1s;">
+            <div class="inline-flex items-center px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-medium mb-6">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full mr-2 pulse-ring"></span>
+                AI-Powered Cultural Intelligence
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold mb-4 leading-tight">
+                Consumer Intelligence System<br>
+                <span class="gradient-text">(CIS)</span>
+            </h1>
+            <p class="text-2xl text-gray-300 mb-4">Decode Culture. Predict Behavior.</p>
+            <p class="text-xl text-gray-400 max-w-2xl mb-8 leading-relaxed">
+                Transform cross-border consumer complexity into competitive advantage through real-time signal detection, predictive analytics, and human-AI co-intelligence.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <button onclick="scrollToSection('architecture')" class="px-8 py-3 bg-indigo-600 hover:bg-indigo-700 rounded-lg font-medium transition-all glow">
+                    Explore System
+                </button>
+                <button onclick="scrollToSection('markets')" class="px-8 py-3 border border-white/20 hover:bg-white/5 rounded-lg font-medium transition-all">
+                    View Case Study
+                </button>
+            </div>
+        </div>
+
+        <!-- System Advantages (replaced previous metrics) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16 slide-in" style="animation-delay: 0.3s;">
+            <div class="metric-card p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-white mb-1">Real-time</div>
+                <div class="text-sm text-gray-400">Cultural Signal Scanning</div>
+                <div class="text-xs text-indigo-400 mt-1">100K+ touchpoints/day</div>
+            </div>
+            <div class="metric-card p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-white mb-1">Cross‑cultural</div>
+                <div class="text-sm text-gray-400">Transfer Learning</div>
+                <div class="text-xs text-indigo-400 mt-1">Predicts emerging markets</div>
+            </div>
+            <div class="metric-card p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-white mb-1">94%</div>
+                <div class="text-sm text-gray-400">Signal Detection Accuracy</div>
+                <div class="text-xs text-green-400 mt-1">+12% vs traditional methods</div>
+            </div>
+            <div class="metric-card p-6 rounded-2xl">
+                <div class="text-3xl font-bold text-white mb-1">85+</div>
+                <div class="text-sm text-gray-400">Cultural Confidence Score</div>
+                <div class="text-xs text-green-400 mt-1">Decision‑ready insights</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- System Architecture -->
+    <section id="architecture" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-4">System Architecture</h2>
+            <p class="text-gray-400 max-w-3xl">Four interconnected layers processing data from collection to strategic decision-making.</p>
+        </div>
+
+        <!-- Flow Diagram -->
+        <div class="relative mb-16 overflow-hidden rounded-2xl bg-gradient-to-b from-gray-900 to-black border border-white/10 p-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 relative z-10">
+                <div class="group cursor-pointer" onclick="toggleModule('data-collection')">
+                    <div class="bg-gray-800/50 backdrop-blur border border-white/10 rounded-xl p-6 h-full card-hover group-hover:border-indigo-500/50">
+                        <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        </div>
+                        <h3 class="font-semibold text-lg mb-2">Data Collection</h3>
+                        <p class="text-sm text-gray-400 mb-3">6-layer ingestion with synthetic augmentation</p>
+                        <div class="flex items-center text-xs text-blue-400">▼ Expand</div>
+                    </div>
+                </div>
+                <div class="group cursor-pointer" onclick="toggleModule('ai-engine')">
+                    <div class="bg-gray-800/50 backdrop-blur border border-white/10 rounded-xl p-6 h-full card-hover group-hover:border-purple-500/50">
+                        <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <h3 class="font-semibold text-lg mb-2">AI Analysis</h3>
+                        <p class="text-sm text-gray-400 mb-3">3-module engine with transfer learning</p>
+                        <div class="flex items-center text-xs text-purple-400">▼ Expand</div>
+                    </div>
+                </div>
+                <div class="group cursor-pointer" onclick="toggleModule('human-layer')">
+                    <div class="bg-gray-800/50 backdrop-blur border border-white/10 rounded-xl p-6 h-full card-hover group-hover:border-pink-500/50">
+                        <div class="w-12 h-12 bg-pink-500/20 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        </div>
+                        <h3 class="font-semibold text-lg mb-2">Human Layer</h3>
+                        <p class="text-sm text-gray-400 mb-3">Cultural validation & interpretation</p>
+                        <div class="flex items-center text-xs text-pink-400">▼ Expand</div>
+                    </div>
+                </div>
+                <div class="group cursor-pointer" onclick="toggleModule('output')">
+                    <div class="bg-gray-800/50 backdrop-blur border border-white/10 rounded-xl p-6 h-full card-hover group-hover:border-green-500/50">
+                        <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <h3 class="font-semibold text-lg mb-2">Strategic Output</h3>
+                        <p class="text-sm text-gray-400 mb-3">Decision-ready intelligence</p>
+                        <div class="flex items-center text-xs text-green-400">▼ Expand</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expandable Modules (content preserved from previous CIS) -->
+        <div id="module-details" class="space-y-4">
+            <div id="data-collection" class="hidden bg-gray-900/50 border border-white/10 rounded-2xl p-6 slide-in">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h3 class="text-xl font-semibold mb-2">Data Collection Layer</h3><p class="text-gray-400 text-sm">Six interconnected data streams with synthetic augmentation for emerging markets</p></div>
+                    <button onclick="toggleModule('data-collection')" class="text-gray-500 hover:text-white">✕</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><span class="text-blue-400 font-semibold">Social Signals</span><br><span class="text-sm text-gray-300">Real-time from Xiaohongshu, Douyin, Instagram, TikTok — <span class="text-white">NLP sentiment & semiotic analysis</span>.</span></div>
+                    <div><span class="text-blue-400 font-semibold">E‑commerce Reviews</span><br><span class="text-sm text-gray-300">Amazon, Tmall, JD, local platforms — <span class="text-white">structured review mining, semantic clustering</span>.</span></div>
+                    <div><span class="text-blue-400 font-semibold">Search & Behavioral Data</span><br><span class="text-sm text-gray-300">Google Trends, Baidu Index, Naver — <span class="text-white">intent analysis, seasonal pattern detection</span>.</span></div>
+                    <div><span class="text-blue-400 font-semibold">Cultural & Media Signals</span><br><span class="text-sm text-gray-300">News, influencers, film/TV — <span class="text-white">narrative tracking & anomaly detection</span>.</span></div>
+                    <div><span class="text-blue-400 font-semibold">First-Party Brand Data</span><br><span class="text-sm text-gray-300">CRM, sales, loyalty programs — <span class="text-white">privacy‑compliant behavioral segmentation</span>.</span></div>
+                    <div><span class="text-indigo-400 font-semibold">Synthetic Augmentation</span><br><span class="text-sm text-gray-300">AI‑simulated culturally nuanced scenarios <span class="text-white">fills data gaps in emerging markets</span>.</span></div>
+                </div>
+            </div>
+            <div id="ai-engine" class="hidden bg-gray-900/50 border border-white/10 rounded-2xl p-6 slide-in">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h3 class="text-xl font-semibold mb-2">AI Analysis Engine</h3><p class="text-gray-400 text-sm">Three-module processing with cross-cultural transfer learning</p></div>
+                    <button onclick="toggleModule('ai-engine')" class="text-gray-500 hover:text-white">✕</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-purple-900/20 p-4 rounded-xl border border-purple-500/30">
+                        <div class="text-purple-400 font-mono text-xs">MODULE 01</div>
+                        <h4 class="font-semibold mt-1">Cultural Signal Scanner</h4>
+                        <p class="text-sm text-gray-300">Scans 100K+ touchpoints daily → detects <span class="text-white">emerging memes, value shifts, cultural tensions</span> 3‑6 months before mainstream adoption.</p>
+                    </div>
+                    <div class="bg-indigo-900/20 p-4 rounded-xl border border-indigo-500/30">
+                        <div class="text-indigo-400 font-mono text-xs">MODULE 02</div>
+                        <h4 class="font-semibold mt-1">Behavioral Archetype Mapper</h4>
+                        <p class="text-sm text-gray-300">Clusters consumers by <span class="text-white">universal motivations + culturally specific expressions</span>; identifies micro‑segments and cultural bridges.</p>
+                    </div>
+                    <div class="bg-blue-900/20 p-4 rounded-xl border border-blue-500/30">
+                        <div class="text-blue-400 font-mono text-xs">MODULE 03</div>
+                        <h4 class="font-semibold mt-1">Predictive Shift Engine</h4>
+                        <p class="text-sm text-gray-300">Time‑series + causal inference → forecasts <span class="text-white">price sensitivity shifts, loyalty erosion, category entry points</span> 6‑12 months ahead.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div><span class="text-purple-400">→</span> Cross‑cultural transfer learning</div>
+                    <div><span class="text-indigo-400">→</span> Semantic cultural embedding</div>
+                    <div><span class="text-blue-400">→</span> Contrarian signal detection</div>
+                    <div><span class="text-cyan-400">→</span> Narrative archetype mapping</div>
+                </div>
+            </div>
+            <div id="human-layer" class="hidden bg-gray-900/50 border border-white/10 rounded-2xl p-6 slide-in">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h3 class="text-xl font-semibold mb-2">Human Interpretation Layer</h3><p class="text-gray-400 text-sm">Expert validation ensuring cultural accuracy and strategic relevance</p></div>
+                    <button onclick="toggleModule('human-layer')" class="text-gray-500 hover:text-white">✕</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="flex items-center gap-3 mb-3"><div class="w-2 h-2 bg-pink-500 rounded-full"></div><span class="font-medium">Cultural Anthropologists</span></div>
+                        <p class="text-sm text-gray-300 ml-5">Decode subtext, validate AI findings, prevent algorithmic bias through quarterly deep‑dive panels.</p>
+                        <div class="flex items-center gap-3 mt-4 mb-3"><div class="w-2 h-2 bg-pink-500 rounded-full"></div><span class="font-medium">Local Market Strategists</span></div>
+                        <p class="text-sm text-gray-300 ml-5">Ground predictions in political, regulatory, and social realities; flag data blind spots.</p>
+                        <div class="flex items-center gap-3 mt-4 mb-3"><div class="w-2 h-2 bg-pink-500 rounded-full"></div><span class="font-medium">Brand Strategists</span></div>
+                        <p class="text-sm text-gray-300 ml-5">Translate insights into creative briefs, product innovation, and campaign concepts.</p>
+                    </div>
+                    <div class="bg-gradient-to-br from-orange-900/20 to-red-900/20 border border-orange-500/30 rounded-xl p-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-orange-400">Cultural Confidence Score</span>
+                            <span class="text-2xl font-bold text-white">85+</span>
+                        </div>
+                        <div class="confidence-bar h-3 rounded-full mb-3"></div>
+                        <div class="text-xs text-gray-400 space-y-1">
+                            <div><span class="text-red-400">&lt;70</span> → auto‑escalation to human experts</div>
+                            <div><span class="text-yellow-400">70–85</span> → review required</div>
+                            <div><span class="text-green-400">85+</span> → decision‑ready</div>
+                        </div>
+                        <p class="text-xs text-gray-300 mt-3">Quarterly Insight Audits with C‑suite ensure accountability and institutional knowledge capture.</p>
+                    </div>
+                </div>
+            </div>
+            <div id="output" class="hidden bg-gray-900/50 border border-white/10 rounded-2xl p-6 slide-in">
+                <div class="flex justify-between items-start mb-6">
+                    <div><h3 class="text-xl font-semibold mb-2">Strategic Output</h3><p class="text-gray-400 text-sm">Decision-ready intelligence across four strategic horizons</p></div>
+                    <button onclick="toggleModule('output')" class="text-gray-500 hover:text-white">✕</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="border-l-4 border-green-500 pl-4"><span class="font-semibold">Cultural Signals Dashboard</span><br><span class="text-sm text-gray-300">Real‑time heatmaps, sentiment shifts, early warning alerts.</span></div>
+                    <div class="border-l-4 border-blue-500 pl-4"><span class="font-semibold">Behavioral Archetype Profiles</span><br><span class="text-sm text-gray-300">Dynamic personas with universal motivations + culturally specific expressions.</span></div>
+                    <div class="border-l-4 border-purple-500 pl-4"><span class="font-semibold">Market Readiness Scorecards</span><br><span class="text-sm text-gray-300">0‑100 predictive scoring for launches, expansions, entry timing.</span></div>
+                    <div class="border-l-4 border-orange-500 pl-4"><span class="font-semibold">Executive Decision Cockpit</span><br><span class="text-sm text-gray-300">One‑page synthesis: top 3 insights, top 3 risks, top 3 actions.</span></div>
+                </div>
+                <div class="mt-4 text-sm text-gray-400 bg-black/30 p-3 rounded-lg">All outputs feed directly into strategic planning, budget allocation, and crisis response.</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Market Comparison with Multi-Select Radar (Dreame case) -->
+    <section id="markets" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto bg-gray-900/30">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-4">Cross-Market Intelligence · Dreame Case Study</h2>
+            <p class="text-gray-400 max-w-3xl">Select 2–5 markets to compare behavioral archetypes. Radar dimensions reflect key cultural drivers identified by CIS.</p>
+        </div>
+
+        <div class="bg-gray-800/30 rounded-2xl p-5 mb-8">
+            <div class="checkbox-group" id="marketCheckboxes"></div>
+            <div class="flex justify-center"><button id="updateRadarBtn" class="compare-btn">🔄 Update Comparison (2–5 markets)</button></div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-gray-800/50 rounded-2xl p-6 border border-white/10">
+                <h3 class="text-lg font-semibold mb-4">Behavioral Archetype Radar</h3>
+                <canvas id="radarChart" width="500" height="450" style="max-height:450px; width:100%"></canvas>
+            </div>
+            <div class="space-y-4" id="marketCards"></div>
+        </div>
+    </section>
+
+    <!-- Methodology Section (6 steps) -->
+    <section id="methodology" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="mb-12">
+            <h2 class="text-3xl font-bold mb-4">CIS Methodology</h2>
+            <p class="text-gray-400 max-w-3xl">A six‑phase operational framework ensuring cultural precision and business impact.</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">01</div>
+                <h3 class="text-lg font-semibold mb-2">Intelligence Architecture Design</h3>
+                <p class="text-sm text-gray-300">Define data sources, collection protocols, and AI tools per market. Establish governance and privacy frameworks.</p>
+            </div>
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">02</div>
+                <h3 class="text-lg font-semibold mb-2">Baseline Consumer Mapping</h3>
+                <p class="text-sm text-gray-300">Map consumer segments, values, behaviors, pain points, and brand perceptions across target markets.</p>
+            </div>
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">03</div>
+                <h3 class="text-lg font-semibold mb-2">Cultural Context Calibration</h3>
+                <p class="text-sm text-gray-300">Train the Cultural Signal Scanner with market‑specific linguistic and semiotic knowledge. Validate with local researchers.</p>
+            </div>
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">04</div>
+                <h3 class="text-lg font-semibold mb-2">Continuous Monitoring Setup</h3>
+                <p class="text-sm text-gray-300">Deploy real‑time social listening, search monitoring, and behavioral tracking with alert thresholds for significant shifts.</p>
+            </div>
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">05</div>
+                <h3 class="text-lg font-semibold mb-2">Monthly Insight Synthesis</h3>
+                <p class="text-sm text-gray-300">Synthesize the 3–5 most actionable insights from monthly data. Distribute to brand, product, and strategy teams.</p>
+            </div>
+            <div class="method-step p-6 rounded-xl bg-gray-800/20 border border-white/5">
+                <div class="text-indigo-400 font-mono text-sm mb-2">06</div>
+                <h3 class="text-lg font-semibold mb-2">Insight Impact Measurement</h3>
+                <p class="text-sm text-gray-300">Track business outcomes of CIS‑driven decisions; use feedback loop to refine system accuracy and relevance.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Key Takeaways & AI Assistant -->
+    <section id="insights" class="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <!-- Key Takeaways -->
+            <div>
+                <h2 class="text-3xl font-bold mb-6">Key Takeaways</h2>
+                <div class="space-y-5">
+                    <div class="bg-gray-800/30 border-l-4 border-indigo-500 p-5 rounded-r-xl">
+                        <p class="text-gray-200">Consumer intelligence is only valuable when culturally contextualized — raw data from non‑home markets is easily misinterpreted without local cultural knowledge and human‑in‑the‑loop validation.</p>
+                    </div>
+                    <div class="bg-gray-800/30 border-l-4 border-purple-500 p-5 rounded-r-xl">
+                        <p class="text-gray-200">Real‑time cultural signal detection (3‑6 months ahead) gives brands first‑mover advantage, enabling proactive strategy instead of reactive catch‑up.</p>
+                    </div>
+                    <div class="bg-gray-800/30 border-l-4 border-blue-500 p-5 rounded-r-xl">
+                        <p class="text-gray-200">Cross‑cultural transfer learning unlocks predictive power in emerging markets where historical data is sparse, turning data poverty into strategic foresight.</p>
+                    </div>
+                    <div class="bg-gray-800/30 border-l-4 border-green-500 p-5 rounded-r-xl">
+                        <p class="text-gray-200">A decision‑ready intelligence system must output not just dashboards but clear briefs, scorecards, and executive summaries that directly inform budget allocation and campaign direction.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Assistant Chat -->
+            <div>
+                <h2 class="text-3xl font-bold mb-6">Ask CIS Assistant</h2>
+                <div class="bg-gray-800/30 rounded-2xl border border-white/10 p-5">
+                    <div id="chatMessages" class="h-80 overflow-y-auto mb-4 space-y-3 pr-2">
+                        <div class="chat-message">
+                            <div class="text-indigo-400 text-sm font-medium mb-1">CIS Assistant</div>
+                            <div class="text-sm text-gray-200">Hello! I'm your CIS intelligence partner. Ask me anything about the system — how it works, its methodology, data sources, or how it helps decode global consumer behavior.</div>
+                        </div>
+                    </div>
+                    <div class="flex gap-3">
+                        <input type="text" id="userQuestion" placeholder="e.g., How does Cultural Confidence Score work?" class="chat-input flex-1">
+                        <button id="sendQuestion" class="bg-indigo-600 hover:bg-indigo-700 px-5 rounded-full font-medium transition">Ask</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-3">Powered by CIS knowledge base · Answers are based on the system's documented capabilities.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="border-t border-white/10 py-12 px-4 text-center text-gray-500 text-sm">
+        Consumer Intelligence System (CIS) · Human-AI Co-Intelligence for Global Brands
+    </footer>
+
+    <script>
+        // Market dataset (6 markets)
+        const marketData = {
+            Germany: { label: "Germany", color: "rgb(59, 130, 246)", data: [35, 85, 78, 42, 55, 88] },
+            UAE: { label: "UAE", color: "rgb(168, 85, 247)", data: [20, 78, 58, 94, 92, 38] },
+            Brazil: { label: "Brazil", color: "rgb(34, 197, 94)", data: [88, 62, 48, 28, 68, 45] },
+            China: { label: "China", color: "rgb(249, 115, 22)", data: [65, 92, 45, 55, 75, 52] },
+            USA: { label: "USA", color: "rgb(239, 68, 68)", data: [45, 88, 72, 60, 70, 58] },
+            Japan: { label: "Japan", color: "rgb(236, 72, 153)", data: [30, 75, 88, 82, 85, 65] }
+        };
+        const marketKeys = ["Germany", "UAE", "Brazil", "China", "USA", "Japan"];
+        const radarLabels = ["Price Sensitivity", "Tech Adoption", "Brand Loyalty", "Service Expectation", "Aesthetic Focus", "Sustainability"];
+        let radarChart;
+        let selectedMarkets = ["Germany", "UAE", "Brazil"];
+
+        function buildCheckboxes() {
+            const container = document.getElementById("marketCheckboxes");
+            container.innerHTML = marketKeys.map(key => `
+                <label class="checkbox-label">
+                    <input type="checkbox" value="${key}" ${selectedMarkets.includes(key) ? "checked" : ""}>
+                    <span>${key}</span>
+                </label>
+            `).join("");
+        }
+
+        function buildMarketCards() {
+            const container = document.getElementById("marketCards");
+            container.innerHTML = marketKeys.map(key => {
+                let insight = "";
+                if (key === "Germany") insight = "Engineering skeptic — proven tech, repairability focus.";
+                else if (key === "UAE") insight = "Status optimizer — white‑glove service, luxury pet wellness.";
+                else if (key === "Brazil") insight = "Aspirational upgrader — value bundling, upgrade path.";
+                else if (key === "China") insight = "Tech enthusiast — KOL‑driven, rapid upgrades, smart ecosystem.";
+                else if (key === "USA") insight = "Utility seeker — pet hair, convenience, Amazon reviews.";
+                else insight = "Quality perfectionist — quiet operation, design, service.";
+                return `
+                    <div class="bg-${key === "Germany" ? "blue" : key === "UAE" ? "purple" : key === "Brazil" ? "green" : key === "China" ? "orange" : key === "USA" ? "red" : "pink"}-900/20 border border-${key === "Germany" ? "blue" : key === "UAE" ? "purple" : key === "Brazil" ? "green" : key === "China" ? "orange" : key === "USA" ? "red" : "pink"}-500/30 rounded-xl p-5">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xl font-bold">${key}</h3>
+                            <span class="text-xs text-gray-400">score: ${marketData[key].data[0]}–${marketData[key].data[5]}</span>
+                        </div>
+                        <p class="text-sm text-gray-300">${insight}</p>
+                        <div class="mt-3 text-xs text-gray-500">${marketData[key].label} · CIS archetype</div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateRadar() {
+            const checkboxes = document.querySelectorAll("#marketCheckboxes input");
+            const newSelected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
+            if (newSelected.length < 2) { alert("Please select 2 to 5 markets."); return; }
+            if (newSelected.length > 5) { alert("Maximum 5 markets."); return; }
+            selectedMarkets = newSelected;
+            const datasets = selectedMarkets.map(m => ({
+                label: marketData[m].label,
+                data: marketData[m].data,
+                borderColor: marketData[m].color,
+                backgroundColor: marketData[m].color.replace("rgb", "rgba").replace(")", ", 0.15)"),
+                pointBackgroundColor: marketData[m].color,
+                pointBorderColor: "#fff",
+                borderWidth: 2
+            }));
+            if (radarChart) radarChart.destroy();
+            const ctx = document.getElementById("radarChart").getContext("2d");
+            radarChart = new Chart(ctx, {
+                type: "radar",
+                data: { labels: radarLabels, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, backdropColor: "transparent" }, grid: { color: "rgba(255,255,255,0.1)" }, pointLabels: { color: "#ccc", font: { size: 11 } } } },
+                    plugins: { legend: { labels: { color: "#ddd" } } }
+                }
+            });
+        }
+
+        // AI Assistant logic (knowledge base)
+        const qaMap = {
+            "cultural confidence score": "The Cultural Confidence Score (1‑100) measures human validation on AI insights. Scores below 70 auto‑escalate to cultural anthropologists; 85+ are flagged decision‑ready.",
+            "data collection": "CIS ingests 100K+ daily touchpoints: social signals (Xiaohongshu, TikTok, Instagram), e‑commerce reviews, search trends, first‑party CRM, and synthetic data for emerging markets.",
+            "ai engine": "Three modules: Cultural Signal Scanner (3‑6 mo trends), Behavioral Archetype Mapper (universal + local motivations), Predictive Shift Engine (6‑12 mo forecasts).",
+            "methodology": "Six phases: Intelligence Architecture Design, Baseline Consumer Mapping, Cultural Context Calibration, Continuous Monitoring, Monthly Insight Synthesis, and Impact Measurement.",
+            "human layer": "Cultural anthropologists, local strategists, and brand strategists validate AI findings, prevent bias, and ensure cultural accuracy. Quarterly Insight Audits keep the system sharp.",
+            "output": "Strategic outputs include dashboards, archetype profiles, market readiness scorecards, opportunity briefs, and an executive cockpit with top 3 insights/risks/actions.",
+            "how does cis help": "CIS gives you early detection of cultural shifts, predicts behavioral changes 6‑12 months ahead, and delivers actionable strategic recommendations tailored to each market.",
+            "cross-cultural transfer learning": "AI learns patterns from data‑rich mature markets and adapts them to predict behavior in emerging markets where historical data is sparse."
+        };
+
+        function getAnswer(question) {
+            const q = question.toLowerCase().trim();
+            for (let [key, answer] of Object.entries(qaMap)) {
+                if (q.includes(key)) return answer;
+            }
+            return "I can help with CIS architecture, data collection, AI modules, human validation, methodology, or strategic outputs. Could you rephrase your question?";
+        }
+
+        function addMessage(text, isUser = false) {
+            const container = document.getElementById("chatMessages");
+            const div = document.createElement("div");
+            div.className = "chat-message";
+            if (isUser) div.classList.add("bg-gray-700/30", "border-l-blue-500");
+            div.innerHTML = `<div class="text-${isUser ? 'blue-400' : 'indigo-400'} text-sm font-medium mb-1">${isUser ? "You" : "CIS Assistant"}</div>
+                             <div class="text-sm text-gray-200">${text}</div>`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function handleAsk() {
+            const input = document.getElementById("userQuestion");
+            const question = input.value.trim();
+            if (!question) return;
+            addMessage(question, true);
+            const answer = getAnswer(question);
+            setTimeout(() => addMessage(answer, false), 100);
+            input.value = "";
+        }
+
+        function toggleModule(moduleId) {
+            const el = document.getElementById(moduleId);
+            if (el.classList.contains("hidden")) {
+                document.querySelectorAll("#module-details > div").forEach(div => div.classList.add("hidden"));
+                el.classList.remove("hidden");
+                el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+            } else {
+                el.classList.add("hidden");
+            }
+        }
+        function scrollToSection(id) { document.getElementById(id).scrollIntoView({ behavior: "smooth" }); }
+
+        // Initialize everything
+        buildCheckboxes();
+        buildMarketCards();
+        const ctx = document.getElementById("radarChart").getContext("2d");
+        const initialDatasets = selectedMarkets.map(m => ({
+            label: marketData[m].label,
+            data: marketData[m].data,
+            borderColor: marketData[m].color,
+            backgroundColor: marketData[m].color.replace("rgb", "rgba").replace(")", ", 0.15)"),
+            pointBackgroundColor: marketData[m].color,
+            pointBorderColor: "#fff",
+            borderWidth: 2
+        }));
+        radarChart = new Chart(ctx, {
+            type: "radar",
+            data: { labels: radarLabels, datasets: initialDatasets },
+            options: { responsive: true, maintainAspectRatio: true, scales: { r: { min: 0, max: 100, ticks: { stepSize: 20, backdropColor: "transparent" }, grid: { color: "rgba(255,255,255,0.1)" }, pointLabels: { color: "#ccc", font: { size: 11 } } } }, plugins: { legend: { labels: { color: "#ddd" } } } }
+        });
+        document.getElementById("updateRadarBtn").addEventListener("click", updateRadar);
+        document.getElementById("sendQuestion").addEventListener("click", handleAsk);
+        document.getElementById("userQuestion").addEventListener("keypress", (e) => { if (e.key === "Enter") handleAsk(); });
+    </script>
+</body>
+</html>
